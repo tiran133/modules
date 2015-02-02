@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Symfony\Component\Finder\Finder;
 
 class Module extends ServiceProvider {
 
@@ -34,8 +35,9 @@ class Module extends ServiceProvider {
      * @param $name
      * @param $path
      */
-    public function __construct(Application $app, $name, $path)
+    public function __construct (Application $app, $name, $path)
     {
+
         $this->app = $app;
         $this->name = $name;
         $this->path = realpath($path);
@@ -46,8 +48,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getName()
+    public function getName ()
     {
+
         return $this->name;
     }
 
@@ -56,8 +59,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getLowerName()
+    public function getLowerName ()
     {
+
         return strtolower($this->name);
     }
 
@@ -66,8 +70,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getStudlyName()
+    public function getStudlyName ()
     {
+
         return Str::studly($this->name);
     }
 
@@ -76,8 +81,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getDescription()
+    public function getDescription ()
     {
+
         return $this->get('description');
     }
 
@@ -86,8 +92,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getAlias()
+    public function getAlias ()
     {
+
         return $this->get('alias');
     }
 
@@ -96,8 +103,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getPriority()
+    public function getPriority ()
     {
+
         return $this->get('priority');
     }
 
@@ -106,8 +114,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function getPath()
+    public function getPath ()
     {
+
         return $this->path;
     }
 
@@ -117,12 +126,32 @@ class Module extends ServiceProvider {
      * @param string $path
      * @return $this
      */
-    public function setPath($path)
+    public function setPath ($path)
     {
+
         $this->path = $path;
 
         return $this;
     }
+
+
+    /**
+     * Get all of the configuration files for the module.
+     *
+     * @return array
+     */
+    private function getConfigurationFiles ($path)
+    {
+
+        $files = [];
+
+        foreach (Finder::create()->files()->name('*.php')->in($path) as $file) {
+            $files[basename($file->getRealPath(), '.php')] = $file->getRealPath();
+        }
+
+        return $files;
+    }
+
 
     /**
      * Register the modules's component namespaces.
@@ -132,32 +161,31 @@ class Module extends ServiceProvider {
      * @param  string $path
      * @return void
      */
-    public function package($package, $namespace = null, $path = null)
+    public function package ($package, $namespace = null, $path = null)
     {
+
         //$namespace = $this->getPackageNamespace($package, $namespace);
 
         // In this method we will register the configuration package for the package
         // so that the configuration options cleanly cascade into the application
         // folder to make the developers lives much easier in maintaining them.
-       // $path = $path ?: $this->guessPackagePath();
+        // $path = $path ?: $this->guessPackagePath();
 
         $generatorPaths = $this->app['config']->get('modules.paths.generator');
 
         $config = $path . '/' . $generatorPaths['config'];
 
-        if ($this->app['files']->isDirectory($config))
-        {
-            $this->mergeConfigFrom($config,$package);
-            //$this->app['config']->set($package, $config);
+        foreach ($this->getConfigurationFiles($config) as $configname => $configfile) {
+            $this->mergeConfigFrom($configfile, $package . '.' . $configname);
         }
+
 
         // Next we will check for any "language" components. If language files exist
         // we will register them with this given package's namespace so that they
         // may be accessed using the translation facilities of the application.
         $lang = $path . '/' . $generatorPaths['lang'];
 
-        if ($this->app['files']->isDirectory($lang))
-        {
+        if ($this->app['files']->isDirectory($lang)) {
             $this->app['translator']->addNamespace($namespace, $lang);
         }
 
@@ -176,9 +204,9 @@ class Module extends ServiceProvider {
         // registering the paths to every package's views and other components.
         $view = $path . '/' . $generatorPaths['views'];
 
-        if ($this->app['files']->isDirectory($view))
-        {
+        if ($this->app['files']->isDirectory($view)) {
             $this->app['view']->addNamespace($namespace, $view);
+
         }
     }
 
@@ -187,8 +215,9 @@ class Module extends ServiceProvider {
      *
      * @return void
      */
-    public function boot()
+    public function boot ()
     {
+
         $this->package('modules.' . $this->getLowerName(), $this->getLowerName(), $this->path);
 
         $this->fireEvent('boot');
@@ -199,8 +228,9 @@ class Module extends ServiceProvider {
      *
      * @return Json
      */
-    public function json()
+    public function json ()
     {
+
         return new Json($this->getPath() . '/module.json', $this->app['files']);
     }
 
@@ -211,8 +241,9 @@ class Module extends ServiceProvider {
      * @param null $default
      * @return mixed
      */
-    public function get($key, $default = null)
+    public function get ($key, $default = null)
     {
+
         return $this->json()->get($key, $default);
     }
 
@@ -221,8 +252,9 @@ class Module extends ServiceProvider {
      *
      * @return void
      */
-    public function register()
+    public function register ()
     {
+
         $this->registerProviders();
 
         $this->registerFiles();
@@ -235,8 +267,9 @@ class Module extends ServiceProvider {
      *
      * @param string $event
      */
-    protected function fireEvent($event)
+    protected function fireEvent ($event)
     {
+
         $this->app['events']->fire(sprintf('modules.%s.' . $event, $this->getLowerName()), [$this]);
     }
 
@@ -245,10 +278,10 @@ class Module extends ServiceProvider {
      *
      * @return void
      */
-    protected function registerProviders()
+    protected function registerProviders ()
     {
-        foreach ($this->get('providers', []) as $provider)
-        {
+
+        foreach ($this->get('providers', []) as $provider) {
             $this->app->register($provider);
         }
     }
@@ -258,10 +291,10 @@ class Module extends ServiceProvider {
      *
      * @return void
      */
-    protected function registerFiles()
+    protected function registerFiles ()
     {
-        foreach ($this->get('files', []) as $file)
-        {
+
+        foreach ($this->get('files', []) as $file) {
             include $this->path . '/' . $file;
         }
     }
@@ -271,8 +304,9 @@ class Module extends ServiceProvider {
      *
      * @return string
      */
-    public function __toString()
+    public function __toString ()
     {
+
         return $this->getStudlyName();
     }
 
@@ -282,8 +316,9 @@ class Module extends ServiceProvider {
      * @param $status
      * @return bool
      */
-    public function isStatus($status)
+    public function isStatus ($status)
     {
+
         return $this->get('active', 0) == $status;
     }
 
@@ -292,8 +327,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function enabled()
+    public function enabled ()
     {
+
         return $this->active();
     }
 
@@ -302,8 +338,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function active()
+    public function active ()
     {
+
         return $this->isStatus(1);
     }
 
@@ -312,8 +349,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function notActive()
+    public function notActive ()
     {
+
         return ! $this->active();
     }
 
@@ -322,8 +360,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function disabled()
+    public function disabled ()
     {
+
         return ! $this->enabled();
     }
 
@@ -333,8 +372,9 @@ class Module extends ServiceProvider {
      * @param $active
      * @return bool
      */
-    public function setActive($active)
+    public function setActive ($active)
     {
+
         return $this->json()->set('active', $active)->save();
     }
 
@@ -343,8 +383,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function disable()
+    public function disable ()
     {
+
         return $this->setActive(0);
     }
 
@@ -353,8 +394,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function enable()
+    public function enable ()
     {
+
         return $this->setActive(1);
     }
 
@@ -363,8 +405,9 @@ class Module extends ServiceProvider {
      *
      * @return bool
      */
-    public function delete()
+    public function delete ()
     {
+
         return $this->json()->getFilesystem()->deleteDirectory($this->getPath(), true);
     }
 
@@ -374,8 +417,9 @@ class Module extends ServiceProvider {
      * @param $path
      * @return string
      */
-    public function getExtraPath($path)
+    public function getExtraPath ($path)
     {
+
         return $this->getPath() . '/' . $path;
     }
 
@@ -385,8 +429,9 @@ class Module extends ServiceProvider {
      * @param $key
      * @return mixed
      */
-    public function __get($key)
+    public function __get ($key)
     {
+
         return $this->get($key);
     }
 
