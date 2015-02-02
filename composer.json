@@ -1,9 +1,10 @@
 {
     "name": "jeloexuma/modules",
-    "description": "Laravel Modules",
+    "description": "Laravel Modules for L5. Forked from pingpong/modules.",
     "keywords": [
         "modules",
         "laravel",
+        "laravel 5",
         "pingpong",
         "hmvc",
         "module"
@@ -11,8 +12,8 @@
     "license": "BSD-3-Clause",
     "authors": [
         {
-            "name": "Pingpong Labs",
-            "email": "pingpong.labs@gmail.com"
+            "name": "Alexander Wolff",
+            "email": "alex.wolff@jeloexuma.com"
         }
     ],
     "require": {

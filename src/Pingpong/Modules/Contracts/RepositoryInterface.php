@@ -24,11 +24,11 @@ interface RepositoryInterface {
     public function scan();
 
     /**
-     * Get modules as modules collection instance.
+     * Get modules as modules Array instance.
      *
-     * @return \Pingpong\Modules\Collectio
+     * @return array
      */
-    public function toCollection();
+    public function toArray();
 
     /**
      * Get scanned paths.

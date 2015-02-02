@@ -23,7 +23,7 @@ class Collection extends BaseCollection {
     {
         return array_map(function ($value)
         {
-            if ($value instanceof Module) return $value->json()->getAttributes();
+            if ($value instanceof Module) return $value->getAttributes()->toArray();
 
             return $value instanceof ArrayableInterface ? $value->toArray() : $value;
 

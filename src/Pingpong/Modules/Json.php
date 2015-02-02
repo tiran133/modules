@@ -2,6 +2,8 @@
 
 use Illuminate\Filesystem\Filesystem;
 
+use Illuminate\Contracts\Filesystem\Filesystem as FilesystemContract;
+
 class Json {
 
     /**
@@ -14,7 +16,7 @@ class Json {
     /**
      * The laravel filesystem instance.
      *
-     * @var \Illuminate\Filesystem\Filesystem
+     * @var \Illuminate\Filesystem\Filesystem|FilesystemContract
      */
     protected $filesystem;
 
@@ -29,9 +31,9 @@ class Json {
      * The constructor.
      *
      * @param mixed $path
-     * @param \Illuminate\Filesystem\Filesystem $filesystem
+     * @param FilesystemContract $filesystem
      */
-    public function __construct($path, Filesystem $filesystem = null)
+    public function __construct($path, FilesystemContract $filesystem = null)
     {
         $this->path = (string)$path;
         $this->filesystem = $filesystem ?: new Filesystem;
@@ -51,10 +53,10 @@ class Json {
     /**
      * Set filesystem.
      *
-     * @param Filesystem $filesystem
+     * @param FilesystemContract $filesystem
      * @return $this
      */
-    public function setFilesystem(Filesystem $filesystem)
+    public function setFilesystem(FilesystemContract $filesystem)
     {
         $this->filesystem = $filesystem;
 

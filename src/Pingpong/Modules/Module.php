@@ -5,6 +5,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 
+/**
+ * Class Module
+ * @package Pingpong\Modules
+ */
 class Module extends ServiceProvider {
 
     /**
@@ -21,26 +25,23 @@ class Module extends ServiceProvider {
      */
     protected $name;
 
-    /**
-     * The module path,.
-     *
-     * @var string
-     */
-    protected $path;
 
     /**
      * The constructor.
      *
      * @param Application $app
      * @param $name
-     * @param $path
+     * @param array $attributes
      */
-    public function __construct (Application $app, $name, $path)
+    public function __construct (Application $app, $name, array $attributes,$path)
     {
 
         $this->app = $app;
         $this->name = $name;
-        $this->path = realpath($path);
+        $this->attributes = new Collection($attributes);
+        $this->setAttribute('path',realpath($path));
+
+        //var_dump($this->getAttribute('path'));
     }
 
     /**
@@ -84,7 +85,7 @@ class Module extends ServiceProvider {
     public function getDescription ()
     {
 
-        return $this->get('description');
+        return $this->getAttribute('description');
     }
 
     /**
@@ -95,7 +96,7 @@ class Module extends ServiceProvider {
     public function getAlias ()
     {
 
-        return $this->get('alias');
+        return $this->getAttribute('alias');
     }
 
     /**
@@ -106,7 +107,7 @@ class Module extends ServiceProvider {
     public function getPriority ()
     {
 
-        return $this->get('priority');
+        return $this->getAttribute('priority');
     }
 
     /**
@@ -117,7 +118,7 @@ class Module extends ServiceProvider {
     public function getPath ()
     {
 
-        return $this->path;
+        return $this->getAttribute('path');
     }
 
     /**
@@ -129,7 +130,7 @@ class Module extends ServiceProvider {
     public function setPath ($path)
     {
 
-        $this->path = $path;
+        $this->setAttribute('path',$path);
 
         return $this;
     }
@@ -218,34 +219,11 @@ class Module extends ServiceProvider {
     public function boot ()
     {
 
-        $this->package('modules.' . $this->getLowerName(), $this->getLowerName(), $this->path);
+        $this->package('modules.config.' . $this->getLowerName(), $this->getLowerName(), $this->path);
 
         $this->fireEvent('boot');
     }
 
-    /**
-     * Get json contents.
-     *
-     * @return Json
-     */
-    public function json ()
-    {
-
-        return new Json($this->getPath() . '/module.json', $this->app['files']);
-    }
-
-    /**
-     * Get a specific data from json file by given the key.
-     *
-     * @param $key
-     * @param null $default
-     * @return mixed
-     */
-    public function get ($key, $default = null)
-    {
-
-        return $this->json()->get($key, $default);
-    }
 
     /**
      * Register the module.
@@ -281,7 +259,7 @@ class Module extends ServiceProvider {
     protected function registerProviders ()
     {
 
-        foreach ($this->get('providers', []) as $provider) {
+        foreach ($this->getAttribute('providers', []) as $provider) {
             $this->app->register($provider);
         }
     }
@@ -294,7 +272,7 @@ class Module extends ServiceProvider {
     protected function registerFiles ()
     {
 
-        foreach ($this->get('files', []) as $file) {
+        foreach ($this->getAttribute('files', []) as $file) {
             include $this->path . '/' . $file;
         }
     }
@@ -319,7 +297,7 @@ class Module extends ServiceProvider {
     public function isStatus ($status)
     {
 
-        return $this->get('active', 0) == $status;
+        return $this->getAttribute('active', 0) == $status;
     }
 
     /**
@@ -432,7 +410,35 @@ class Module extends ServiceProvider {
     public function __get ($key)
     {
 
-        return $this->get($key);
+        return $this->getAttribute($key);
+    }
+
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed
+     */
+    private function getAttribute ($key,$default = null)
+    {
+        return $this->attributes->get($key, $default);
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getAttributes(){
+
+        return $this->attributes;
+
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     */
+    private function setAttribute ($key, $value)
+    {
+        $this->attributes->put($key, $value);
     }
 
 }
