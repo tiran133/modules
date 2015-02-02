@@ -134,20 +134,21 @@ class Module extends ServiceProvider {
      */
     public function package($package, $namespace = null, $path = null)
     {
-        $namespace = $this->getPackageNamespace($package, $namespace);
+        //$namespace = $this->getPackageNamespace($package, $namespace);
 
         // In this method we will register the configuration package for the package
         // so that the configuration options cleanly cascade into the application
         // folder to make the developers lives much easier in maintaining them.
-        $path = $path ?: $this->guessPackagePath();
+       // $path = $path ?: $this->guessPackagePath();
 
-        $generatorPaths = $this->app['config']->get('modules::paths.generator');
+        $generatorPaths = $this->app['config']->get('modules.paths.generator');
 
         $config = $path . '/' . $generatorPaths['config'];
 
         if ($this->app['files']->isDirectory($config))
         {
-            $this->app['config']->package($package, $config, $namespace);
+            $this->mergeConfigFrom($config,$package);
+            //$this->app['config']->set($package, $config);
         }
 
         // Next we will check for any "language" components. If language files exist
@@ -163,12 +164,12 @@ class Module extends ServiceProvider {
         // Next, we will see if the application view folder contains a folder for the
         // package and namespace. If it does, we'll give that folder precedence on
         // the loader list for the views so the package views can be overridden.
-        $appView = $this->getAppViewPath($package);
-
-        if ($this->app['files']->isDirectory($appView))
-        {
-            $this->app['view']->addNamespace($namespace, $appView);
-        }
+//        $appView = $this->getAppViewPath($package);
+//
+//        if ($this->app['files']->isDirectory($appView))
+//        {
+//            $this->app['view']->addNamespace($namespace, $appView);
+//        }
 
         // Finally we will register the view namespace so that we can access each of
         // the views available in this package. We use a standard convention when
@@ -188,7 +189,7 @@ class Module extends ServiceProvider {
      */
     public function boot()
     {
-        $this->package('modules/' . $this->getLowerName(), $this->getLowerName(), $this->path);
+        $this->package('modules.' . $this->getLowerName(), $this->getLowerName(), $this->path);
 
         $this->fireEvent('boot');
     }
